@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@angular-material-components/color-picker": "^6.0.0"
+  }
+}
