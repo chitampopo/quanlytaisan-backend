@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.panda.quanly.taisan.quanlytaisan.batdongsan.controller.BatDongSanManagement;
+import com.panda.quanly.taisan.quanlytaisan.dongsan.controller.DongSanManagement;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -28,8 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping(value = "/images")
 public class ImageResource {
     
-    @Autowired
-    BatDongSanManagement batDongSanManagement;
+    @Autowired BatDongSanManagement batDongSanManagement;
+    @Autowired DongSanManagement dongSanManagement;
 
     @GetMapping(value = "/{type}/{id}/{imageFile}", produces = MediaType.IMAGE_JPEG_VALUE)
     public byte[] getImage(@PathVariable String type, @PathVariable String id, @PathVariable String imageFile) throws IOException {
@@ -47,7 +48,11 @@ public class ImageResource {
         try (OutputStream os = new FileOutputStream(file)) {
             os.write(multipartFile.getBytes());
         }
-        batDongSanManagement.updateHinhDaiDien(id, multipartFile.getOriginalFilename());
+        if("batdongsan".equals(folder)) {
+            batDongSanManagement.updateHinhDaiDien(id, multipartFile.getOriginalFilename());
+        } else {
+            dongSanManagement.updateHinhDaiDien(id, multipartFile.getOriginalFilename());
+        }
     }
 
     @PostMapping(value = "/upload-others")
@@ -57,7 +62,11 @@ public class ImageResource {
         try (OutputStream os = new FileOutputStream(file)) {
             os.write(multipartFile.getBytes());
         }
-        batDongSanManagement.updateHinhAnhKhac(id, multipartFile.getOriginalFilename());
+        if("batdongsan".equals(folder)) {
+            batDongSanManagement.updateHinhAnhKhac(id, multipartFile.getOriginalFilename());
+        } else {
+            dongSanManagement.updateHinhAnhKhac(id, multipartFile.getOriginalFilename());
+        }
     }
 
     @DeleteMapping(value = "/clean-folder")
@@ -66,6 +75,11 @@ public class ImageResource {
                 .filter(Files::isRegularFile)
                 .map(Path::toFile)
                 .forEach(File::delete);
-        batDongSanManagement.cleanImages(id);
+        
+        if("batdongsan".equals(folder)) {
+            batDongSanManagement.cleanImages(id);
+        } else {
+            dongSanManagement.cleanImages(id);
+        }
     }
 }

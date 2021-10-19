@@ -43,6 +43,12 @@ public class BatDongSan {
     String diaChi;
 
     @Column(nullable = true)
+    String dienTichDat;
+
+    @Column(nullable = true)
+    String dienTichNha;
+
+    @Column(nullable = true)
     String viTriGoogleMap;
 
     @Column(nullable = true)

@@ -4,13 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.panda.quanly.taisan.quanlytaisan.dongsan.entity.DongSan;
+import com.panda.quanly.taisan.quanlytaisan.dongsan.entity.DongSanRepository;
 
 import org.json.JSONArray;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DongSanManagement {
     
+    @Autowired DongSanRepository dongSanRepo;
+
     public String buildUrlHinhAnh(DongSan dongSan) {
         if(dongSan.getHinhAnhHienThi() == null) {
             return null;
@@ -32,5 +36,27 @@ public class DongSanManagement {
             list.add(sb.toString());
         }
         return list;
+    }
+
+    synchronized public void updateHinhDaiDien(String id, String originalFilename) {
+        DongSan ds = dongSanRepo.getById(Long.parseLong(id));
+        ds.setHinhAnhHienThi(originalFilename);
+        dongSanRepo.save(ds);
+    }
+
+    synchronized public void updateHinhAnhKhac(String id, String originalFilename) {
+        DongSan ds = dongSanRepo.getById(Long.parseLong(id));
+        String danhSachHinhAnh = ds.getDanhSachHinhAnh();
+        JSONArray jsonArray = new JSONArray(danhSachHinhAnh);
+        jsonArray.put(originalFilename);
+        ds.setDanhSachHinhAnh(jsonArray.toString());
+        dongSanRepo.saveAndFlush(ds);
+    }
+
+    public void cleanImages(String id) {
+        DongSan ds = dongSanRepo.getById(Long.parseLong(id));
+        ds.setHinhAnhHienThi("");
+        ds.setDanhSachHinhAnh("[]");
+        dongSanRepo.save(ds);
     }
 }
