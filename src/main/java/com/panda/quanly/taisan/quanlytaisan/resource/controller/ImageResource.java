@@ -9,8 +9,11 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 import com.panda.quanly.taisan.quanlytaisan.batdongsan.controller.BatDongSanManagement;
+import com.panda.quanly.taisan.quanlytaisan.caidat.controller.ConfigResource;
+import com.panda.quanly.taisan.quanlytaisan.caidat.entity.Config;
 import com.panda.quanly.taisan.quanlytaisan.dongsan.controller.DongSanManagement;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +34,18 @@ public class ImageResource {
     
     @Autowired BatDongSanManagement batDongSanManagement;
     @Autowired DongSanManagement dongSanManagement;
+    @Autowired ConfigResource configResource;
 
     @GetMapping(value = "/{type}/{id}/{imageFile}", produces = MediaType.IMAGE_JPEG_VALUE)
     public byte[] getImage(@PathVariable String type, @PathVariable String id, @PathVariable String imageFile) throws IOException {
-        File file = ResourceUtils.getFile("classpath:" + type + "/" + id + "/" + imageFile);
+        File file;
+        if("banners".equals(type)) {
+            Optional<Config> banner = configResource.getConfigs().stream().filter(c -> id.equals(c.getKey())).findAny();
+            file = ResourceUtils.getFile("classpath:" + id + "/" + banner.get().getValue());
+        } else {
+            file = ResourceUtils.getFile("classpath:" + type + "/" + id + "/" + imageFile);
+        }
+
         try (InputStream is = new FileInputStream(file)) {
             System.out.println(is);
             return is.readAllBytes();
@@ -67,6 +78,16 @@ public class ImageResource {
         } else {
             dongSanManagement.updateHinhAnhKhac(id, multipartFile.getOriginalFilename());
         }
+    }
+
+    @PostMapping(value = "/upload-banners")
+    public void postBanners(@RequestParam("file") MultipartFile multipartFile, @RequestParam String folder) throws IOException {
+        Files.createDirectories(Paths.get("classpath:" + folder));
+        File file = new File("src/main/resources/" + folder + "/" + multipartFile.getOriginalFilename());
+        try (OutputStream os = new FileOutputStream(file)) {
+            os.write(multipartFile.getBytes());
+        }
+        configResource.updateBanners(folder, multipartFile.getOriginalFilename());
     }
 
     @DeleteMapping(value = "/clean-folder")

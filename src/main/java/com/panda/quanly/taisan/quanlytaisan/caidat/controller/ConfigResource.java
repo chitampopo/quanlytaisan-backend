@@ -25,6 +25,13 @@ public class ConfigResource {
     
     @Autowired ConfigRepository configRepo;
 
+    @GetMapping
+    public List<Config> getConfigs() {
+        List<Config> findAll = configRepo.findAll();
+        return findAll;
+    }
+
+
     @GetMapping("/sap-xep-bds")
     public SortResult sortBDS() {
         List<Config> findAll = configRepo.findAll();
@@ -73,6 +80,13 @@ public class ConfigResource {
         });
     }
 
+    @PutMapping("/update-banners/{key}/{value}")
+    public void updateBanners(@PathVariable String key, @PathVariable String value) {
+        Config keyConfig = configRepo.findByKey(key).get(0);
+        keyConfig.setValue(value);
+        configRepo.save(keyConfig);
+    }
+
     private List<SortItem> configToListString(Optional<Config> config) {
         if(!config.isPresent()) {
             return Collections.emptyList();
@@ -83,4 +97,6 @@ public class ConfigResource {
             return sortItem;
         }).collect(Collectors.toList());
     }
+
+
 }
